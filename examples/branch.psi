@@ -1,0 +1,16 @@
+3         3 8 4 6 2 6 4 3 3 8 3 2 7 9 5 0 2
+ 1         2                            v E
+  4       3                           SYS_T
+   1       9   9 3 2 3 8 4 6 2 6 4 3 3 8 3 2 7 9 5 0 2 8 8 4 1 9
+    5     7   7                                              v E
+    |9     9   9                                           SYS_T
+    | 2     8 8   7 9 3 2 3 8 4 6
+    |  6 5 3 5 8 9            v E
+    ^       8 8             SYS_T
+  SYS_T    9   9 7 9 3 2
+            7        v E
+# ^^^      9       SYS_T
+# remove    3 2 3
+# above       v E
+# to test    SYS_T
+# random chance
