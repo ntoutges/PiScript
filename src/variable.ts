@@ -41,6 +41,10 @@ export class Variable extends Eventer<"set"|"get"> {
     return this.vars.has(name);
   }
 
+  hasRegister(key: number) {
+    return this.registers.has(key);
+  }
+
   // separates based on "@"
   private getVarNameAndIndex(key: string) {
     const index = key.indexOf("@");
@@ -66,7 +70,7 @@ export class Variable extends Eventer<"set"|"get"> {
   ) {
     return this.registers.get(key) ?? ((fallback !== null) ? fallback : Math.floor(Math.random() * 10)); // no fallback and an unset register indicates random int in the range [0,9]
   }
-
+f
   halt() { this.halted = true; }
   unhalt() {
     if (!this.halted) return;

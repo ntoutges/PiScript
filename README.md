@@ -7,7 +7,26 @@ PiScript is a language built in honor of the greatest transcendental number: π 
 * Examples:
   * Example programs are given in the `examples` directory.
   * To run these: type `node ps.js exampes/<file>`.
+  * To learn the language, try `node ps.js examples/echo.psi -m8 -s500 -r`
   * Yes, PiScript is an interpreted language run by an interpreted language (node).
+* Flags
+  * Flags are made of an alphabetical identifier, and an optional numerical argument.
+    * ex: `-f2`, `-s150`
+  * `-m[number]`
+    * (**m**)ap
+    * Shows a map of the characters around the PC at each tick.
+    * The argument specifices the radius of the map (If left unset, this defaults to `5`).
+    * ex: `node ps.js examples/echo.psi -m2`
+  * `-s[number]`
+    * (**s**)leep
+    * Waits some amount of milliseconds before each tick.
+    * The argument specifies the amount of milliseconds (If left unset, this defaults to 100),
+    * ex: `node ps.js examples/branch.psi -s500`
+  * `-r`
+    * (**r**)egisters
+    * Displays the currently set registers (This only shows registers 0-9 (inclusive))
+    * Any argument given is unused
+    * ex: `node ps.js examples/loop.psi -r``
 
 ## Basic Structure
 PiScript is built around the idea of a 2d Program Counter (PC) moving around a hexagonal grid of numbers.\

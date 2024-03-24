@@ -3,13 +3,16 @@ export type tokenType = "empty" | "path" | "name" | "operator" | "unknown";
 export class ProgToken {
   readonly type: tokenType;
   readonly value: string;
+  readonly char: string;
 
   constructor(
     type: tokenType,
-    value: string
+    value: string,
+    char: string
   ) {
     this.type = type;
     this.value = value;
+    this.char = char;
   }
 
   matches(other: ProgToken) {
@@ -21,7 +24,7 @@ export class ProgToken {
   }
 }
 
-export const emptyToken = new ProgToken("empty", " ");
+export const emptyToken = new ProgToken("empty", " ", " ");
 const operators = "PpE^v+-@|<>:."
 
 export function tokenize(prgStr: string) {
@@ -42,6 +45,7 @@ export function tokenize(prgStr: string) {
         lineTokens.push(
           new ProgToken(
             "path",
+            char,
             char
           )
         );
@@ -55,6 +59,7 @@ export function tokenize(prgStr: string) {
           lineTokens.push( // operator whose char is allowed within name
             new ProgToken(
               "operator",
+              char,
               char
             )
           );
@@ -72,8 +77,9 @@ export function tokenize(prgStr: string) {
         }
 
         // use the same token for every entry in the the name
-        const token = new ProgToken("name", text);
-        for (let j = oldI; j < i; j++) { lineTokens.push(token); }
+        for (let j = oldI; j < i; j++) {
+          lineTokens.push(new ProgToken("name", text, text[j - oldI]));
+        }
 
         i--; // undo extra addition
       }
@@ -81,6 +87,7 @@ export function tokenize(prgStr: string) {
         lineTokens.push( // operator whos char is not allowed within name
           new ProgToken(
             "operator",
+            char,
             char
           )
         );
@@ -89,6 +96,7 @@ export function tokenize(prgStr: string) {
         lineTokens.push(
           new ProgToken(
             "unknown",
+            char,
             char
           )
         );

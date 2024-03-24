@@ -1,5 +1,6 @@
 import { Program } from "./program";
 import { ProgToken, tokenType, tokenize } from "./tokenizer";
+import { Variable } from "./variable";
 const fs = require("node:fs");
 const readline = require('node:readline').createInterface({ input: process.stdin, output: process.stdout });
 
@@ -7,19 +8,21 @@ const piStr = fs.readFileSync("pi.txt", "utf-8");
 
 const lineCt = 20;
 const lines = [];
+let isNewLine = false;
 for (let i = 0; i < lineCt; i++) { lines.push(""); }
 
-export async function run(prgStr: string) {
+export async function run(prgStr: string, flags: Map<string, number> = new Map()) {
   const prg = new Program(piStr, prgStr);
-  
-  prg.on("print", (x) => {
-    lines[lines.length-1] += x.split("\n")[0];
-    lines.push(...x.split("\n").slice(1));
-    
-    
-    lines.splice(0, lines.length-lineCt); // only keep last 10 lines
-    console.log(lines.join("\n"));
-  });
+
+  let mapRadius = flags.get("m") ?? -1;
+  let sleepMS = flags.get("s") ?? -1;
+  let printRegisters = flags.has("r");
+
+  // set flag defaults
+  if (mapRadius == 0) mapRadius = 5;
+  if (sleepMS == 0) sleepMS = 100;
+
+  prg.on("print", print);
   
   let readBuffer = [];
   prg.on("read", (callback: (char: string) => void) => {
@@ -28,7 +31,6 @@ export async function run(prgStr: string) {
       readline.question("", (answer: string) => {
         readBuffer.push(...Array.from(answer).reverse()); // first char on the end, for more effecient popping
         callback(readBuffer.length == 0 ? " " : readBuffer.pop());
-    
       });
     }
   });
@@ -36,6 +38,10 @@ export async function run(prgStr: string) {
   let cleanExit = false;
   try {
     while(!cleanExit && prg.tick()) {
+      if (sleepMS >= 0) await sleep(sleepMS);
+      if (printRegisters) doPrintRegisters(prg.vars);
+      if (mapRadius >= 0) doShowMap(prg, mapRadius, printRegisters ? 1 : 0);
+
       const below = prg.get(0,1);
       if (below.type == "operator") {
         const register = prg.piChar();
@@ -150,6 +156,11 @@ export async function run(prgStr: string) {
             break;
         }
       }
+
+      if (isNewLine) {
+        isNewLine = false;
+        console.log(lines.join("\n"));
+      }
     }
   }
   catch(err) {
@@ -183,6 +194,53 @@ function getTokenValue(
   }
   return token.value;
 }
+
+function print(text: string) {
+  lines[lines.length-1] += text.split("\n")[0];
+  lines.push(...text.split("\n").slice(1));
+  
+  lines.splice(0, lines.length-lineCt); // only keep last 10 lines
+  // console.log(lines.join("\n"));
+  isNewLine = true;
+}
+
+function revPrint(text: string, offset: number = 0) {
+  const textLines = text.split("\n");
+  for (let i = 0; i < textLines.length; i++) {
+    if (i + offset >= lines.length) break;
+    lines[i + offset] = textLines[i];
+  }
+
+  // console.log(lines.join("\n"));
+  isNewLine = true;
+}
+
+function doShowMap(prg: Program, radius: number, offset: number = 0) {
+  let str = "";
+  const [globalX, globalY] = prg.pc.at();
+  
+  for (let offY = -radius; offY <= radius; offY++) {
+    for (let offX = -2*radius; offX <= 2*radius; offX++) {
+      const char = prg.get(offX, offY).char;
+      const filler = ((globalX + offX) % 3 == 0 && (globalY + offY) % 2 == 0) ? "`" : " ";
+
+      str += (offX == 0 && offY == 0) ? `\x1b[7m${char}\x1b[0m` : (char == " ") ? filler : char;
+    }
+    str += "\n";
+  }
+  revPrint(str + `(${prg.pc.at(1,1).slice(0,2).toString()})`, offset);
+}
+
+function doPrintRegisters(vars: Variable) {
+  const registerVals: [key: number, val: number][] = [];
+  for (let key = 0; key <= 9; key++) {
+    if (vars.hasRegister(key)) registerVals.push([key,vars.getRegister(key)]);
+  }
+  registerVals.sort((a,b) => a[0] - b[0]);
+  revPrint(registerVals.map(([key,val]) => `${key}[${val}]`).join(" "));
+}
+
+
 
 function sleep(ms: number) {
   return new Promise(resolve => { setTimeout(resolve, ms); });
